@@ -836,6 +836,8 @@ class CS3IPlayer : IPlayer {
             // for WIDEVINE/drm as well? Do that if someone gets 404 and creates an issue.
             val headers =
                 refererMap + link.headers // Adds the headers from the provider, e.g Authorization
+            Log.d(TAG, "Referer = [${link.referer}]")
+            Log.d(TAG, "Referer chars = " + link.referer.map {"U+%04X".format(it.code)})
 
             return source.apply {
                 setDefaultRequestProperties(headers)
