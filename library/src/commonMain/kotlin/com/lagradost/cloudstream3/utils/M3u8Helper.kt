@@ -41,6 +41,11 @@ class M3u8Helper {
 object M3u8Helper2 {
     private val TAG = "M3u8Helper"
 
+    // --- تعديل: فلترة الهيدرات لتفادي محارف > 0xFF ---
+    private fun safeHeaders(h: Map<String, String>): Map<String, String> =
+        h.filterValues { v -> v.all { it.code <= 0xFF } }
+    // ------------------------------------------------
+
     private val aesCbc = CryptographyProvider.Default.get(AES.CBC)
 
     suspend fun generateM3u8(
@@ -136,7 +141,8 @@ object M3u8Helper2 {
         returnThis: Boolean = true
     ): List<M3u8Helper.M3u8Stream> {
         val list = mutableListOf<M3u8Helper.M3u8Stream>()
-        val response = app.get(m3u8.streamUrl, headers = m3u8.headers, verify = false).text
+        // تعديل: safeHeaders
+        val response = app.get(m3u8.streamUrl, headers = safeHeaders(m3u8.headers), verify = false).text
         val parsed = HlsPlaylistParser.parse(m3u8.streamUrl, response)
 
         var anyFound = false
@@ -237,7 +243,8 @@ object M3u8Helper2 {
             if (index < 0 || index >= size) throw IllegalArgumentException("index must be in the bounds of the ts")
             val ts = allTsLinks[index]
 
-            val tsResponse = app.get(ts.url, headers = headers, verify = false)
+            // تعديل: safeHeaders
+            val tsResponse = app.get(ts.url, headers = safeHeaders(headers), verify = false)
             val body = tsResponse.body
             val tsData = body.bytes()
             body.close()
@@ -253,6 +260,10 @@ object M3u8Helper2 {
                 tsData
             }
         }
+
+        // تعديل: الوصول إلى safeHeaders من داخل data class
+        private fun safeHeaders(h: Map<String, String>): Map<String, String> =
+            h.filterValues { v -> v.all { it.code <= 0xFF } }
     }
 
     @Throws
@@ -270,10 +281,11 @@ object M3u8Helper2 {
             throw IllegalArgumentException()
         }
 
+        // تعديل: safeHeaders
         val playlistResponse =
             app.get(
                 playlistStream.streamUrl,
-                headers = playlistStream.headers,
+                headers = safeHeaders(playlistStream.headers),
                 verify = false
             ).text
 
@@ -332,8 +344,9 @@ object M3u8Helper2 {
             val encryptionUrl = resolveUrl(playlistStream.streamUrl, match[2])
 
             encryptionIv = match[3].encodeToByteArray()
+            // تعديل: safeHeaders
             val encryptionKeyResponse =
-                app.get(encryptionUrl, headers = playlistStream.headers, verify = false)
+                app.get(encryptionUrl, headers = safeHeaders(playlistStream.headers), verify = false)
             val body = encryptionKeyResponse.body
             encryptionData = body.bytes()
             body.close()
