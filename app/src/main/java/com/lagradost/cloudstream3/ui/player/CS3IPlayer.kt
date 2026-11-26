@@ -809,9 +809,9 @@ class CS3IPlayer : IPlayer {
 
             val source = if (interceptor == null) {
                 if (engine == null) {
-                    Log.d(TAG, "Using DefaultHttpDataSource for $link")
-                    OkHttpDataSource.Factory(app.baseClient).setUserAgent(userAgent)
-                } else {
+    Log.d(TAG, "Using DefaultHttpDataSource for $link")
+    DefaultHttpDataSource.Factory().setUserAgent(userAgent)
+} else {
                     Log.d(TAG, "Using CronetDataSource for $link")
                     CronetDataSource.Factory(engine, Executors.newSingleThreadExecutor())
                         .setUserAgent(userAgent)
@@ -821,12 +821,11 @@ class CS3IPlayer : IPlayer {
                         .setHandleSetCookieRequests(true)
                 }
             } else {
-                Log.d(TAG, "Using OkHttpDataSource for $link")
-                val client = app.baseClient.newBuilder()
-                    .addInterceptor(interceptor)
-                    .build()
-                OkHttpDataSource.Factory(client).setUserAgent(userAgent)
-            }
+    Log.d(TAG, "Using DefaultHttpDataSource for $link")
+    DefaultHttpDataSource.Factory()
+        .setUserAgent(userAgent)
+        .setAllowCrossProtocolRedirects(true)
+}
 
             // Do no include empty referer, if the provider wants those they can use the header map.
             val refererMap =
